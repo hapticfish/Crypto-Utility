@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/reactpractice.iml" filepath="$PROJECT_DIR$/.idea/reactpractice.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/CryptoUtility.iml" filepath="$PROJECT_DIR$/.idea/CryptoUtility.iml" />
     </modules>
   </component>
 </project>

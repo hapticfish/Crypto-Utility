@@ -1,24 +1,29 @@
 import logo from './logo.svg';
 import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Header from './components/Header';
+import Navigation from './components/Navigation';
+import Body from './components/Body';
+import Footer from './components/Footer';
+
+import HomePage from './components/HomePage';
+import SplashPage from './components/SplashPage';
+import AccountingPage from './components/AccountingPage';
+import CalculatorPage from './components/CalculatorPage';
+
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Switch>
+        <Route path="/splash" component={SplashPage} />
+        <Route path="/" component={HomePage} />
+        <Route path="/accounting" component={AccountingPage} />
+        <Route path="/calculator" component={CalculatorPage} />
+      </Switch>
+    </Router>
   );
 }
 
