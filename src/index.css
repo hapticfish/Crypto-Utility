@@ -1,0 +1,98 @@
+
+
+.splash-page-grid-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr/*8fr 2fr*/;
+    min-height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
+.logo-styling .logo-image {
+
+    display: flex; /* Enables Flexbox */
+    justify-content: center; /* Horizontally centers the child elements (logo) */
+    align-items: center; /* Vertically centers the child elements (logo) */
+    height: 100%; /* Ensures the container takes full height of its parent */
+    width: 100%;
+    max-width: 700px;
+    max-height: 700px;
+
+    object-fit: contain;
+
+    animation: spin 1.5s infinite;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+    opacity: 0.7;
+    transform: scale(0.5);
+    grid-row: 1;
+
+}
+
+.logo-styling {
+    grid-row: 1;
+    display: flex; /* Enables Flexbox */
+    justify-content: center; /* Horizontally centers the child elements */
+    align-items: center; /* Vertically centers the child elements */
+    height: 100%; /* Full height of the grid area */
+    width: 100%; /* Full width of the grid area */
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg) scale(0.5);
+    }
+    to {
+        transform: rotate(360deg) scale(0.5);
+    }
+
+}
+
+.footer-styling {
+
+    color: #333; /* Dark text color for contrast */
+    text-align: center; /* Center-align the text */
+    padding: 20px 0; /* Add some padding above and below */
+    margin-top: 20px; /* Add margin on the top */
+    font-size: 14px; /* Set a standard font size */
+
+    grid-row: 2;
+}
+
+.loading-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dot {
+    height: 10px;
+    width: 10px;
+    background-color: black;
+    border-radius: 50%;
+    margin: 0 5px;
+    animation: growDot 1.5s infinite ease-in-out;
+}
+
+.dot:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.dot:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.dot:nth-child(3) {
+    animation-delay: 1s;
+}
+
+@keyframes growDot {
+    0%, 100% {
+        transform: scale(1);
+
+    }
+    50% {
+        transform: scale(1.5);
+    }
+
+}
