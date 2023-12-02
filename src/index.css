@@ -9,12 +9,21 @@
     overflow: hidden;
 }
 
+.home-page-grid-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr/*8fr 2fr*/;
+    min-height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
 .logo-styling .logo-image {
 
-    display: flex; /* Enables Flexbox */
-    justify-content: center; /* Horizontally centers the child elements (logo) */
-    align-items: center; /* Vertically centers the child elements (logo) */
-    height: 100%; /* Ensures the container takes full height of its parent */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
     width: 100%;
     max-width: 700px;
     max-height: 700px;
@@ -31,11 +40,11 @@
 
 .logo-styling {
     grid-row: 1;
-    display: flex; /* Enables Flexbox */
-    justify-content: center; /* Horizontally centers the child elements */
-    align-items: center; /* Vertically centers the child elements */
-    height: 100%; /* Full height of the grid area */
-    width: 100%; /* Full width of the grid area */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
 }
 
 @keyframes spin {
@@ -50,11 +59,11 @@
 
 .footer-styling {
 
-    color: #333; /* Dark text color for contrast */
-    text-align: center; /* Center-align the text */
-    padding: 20px 0; /* Add some padding above and below */
-    margin-top: 20px; /* Add margin on the top */
-    font-size: 14px; /* Set a standard font size */
+    color: #333;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 20px;
+    font-size: 14px;
 
     grid-row: 2;
 }
@@ -95,4 +104,43 @@
         transform: scale(1.5);
     }
 
+}
+
+
+/*Home Page CSS*/
+
+.home-page-grid-container {
+    display: grid;
+    grid-template-columns: 70% 30%;
+    grid-template-rows: 10% 80% 10%;
+    height: 100vh;
+    grid-template-areas:
+    "header header"
+    "main nav"
+    "ticker ticker"
+    "footer footer";
+}
+
+.home-logo-cont {
+    grid-area: header;
+}
+
+.home-title-cont {
+    grid-area: main;
+}
+
+.home-calc-cont {
+    grid-area: nav;
+}
+
+.home-ticker-title-cont {
+    grid-area: ticker;
+}
+
+.home-ticker-cont {
+    grid-area: ticker;
+}
+
+.footer-styling {
+    grid-area: footer;
 }
