@@ -1,4 +1,8 @@
 
+//TODO add context for websocket and retriving tickers and anything else
+//TODO implament fetch ticker data function
+//TODO finish intagrating go with react ticker stuff
+
 import '../index.css';
 import React, { useState, useEffect} from "react";
 
