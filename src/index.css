@@ -234,3 +234,25 @@ body {
     height: auto;
     object-fit: contain;
 }
+
+.ticker-value {
+    /* Basic styling for ticker values */
+}
+
+.ticker-up {
+    animation: flashGreen 1s;
+}
+
+.ticker-down {
+    animation: flashRed 1s;
+}
+
+@keyframes flashGreen {
+    from { background-color: lightgreen; }
+    to { background-color: transparent; }
+}
+
+@keyframes flashRed {
+    from { background-color: lightcoral; }
+    to { background-color: transparent; }
+}
