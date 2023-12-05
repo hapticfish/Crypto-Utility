@@ -1,4 +1,3 @@
-import React, {useEffect, useState} from 'react'
 
 import useGitHubLastUpdated from "../hooks/useGitHubLastUpdated";
 
@@ -8,7 +7,7 @@ const GeneralAppFooter = () => {
 
 
     return (
-        <div className="footer-styling">
+        <div className="gen-app-foot-style">
             <p>© {lastUpdated}</p>
         </div>
     );

@@ -1,10 +1,5 @@
 import React from 'react';
 import '../index.css';
-import SplashLogo from "./SplashLogo";
-import SplashFooter from "./SplashFooter";
-
-// import SplashFooter from './SplashFooter';
-// import SplashLogo from './SplashLogo';
 
 import HomeLogo from './HomeLogo';
 import GeneralAppFooter from "./GeneralAppFooter";
@@ -20,8 +15,8 @@ const HomePage = () => {
                 <p>Crypto Util</p>
             </div>
             <div className="home-calc-cont">
-                <button className="nav-button"></button>
-                <button className="nav-button"></button>
+                <button className="nav-button">Calculators</button>
+                <button className="nav-button">Accounting</button>
             </div>
             <div className="home-ticker-title-cont">
                 <p>Tickers</p>

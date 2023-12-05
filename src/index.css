@@ -1,4 +1,6 @@
-
+body {
+    font-family: 'Roboto', sans-serif;
+}
 
 .splash-page-grid-container {
     display: grid;
@@ -9,14 +11,6 @@
     overflow: hidden;
 }
 
-.home-page-grid-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr/*8fr 2fr*/;
-    min-height: 100vh;
-    max-height: 100vh;
-    overflow: hidden;
-}
 
 .logo-styling .logo-image {
 
@@ -111,36 +105,132 @@
 
 .home-page-grid-container {
     display: grid;
-    grid-template-columns: 70% 30%;
-    grid-template-rows: 10% 80% 10%;
+    grid-template-columns: 20% 50% 30%;
+    grid-template-rows: 15% 5% 70% 10%;
     height: 100vh;
     grid-template-areas:
-    "header header"
-    "main nav"
-    "ticker ticker"
-    "footer footer";
+    "logo header header"
+    "nav nav tickerTitle"
+    "nav nav ticker"
+    "footer footer footer";
+    gap: 10px;
 }
 
 .home-logo-cont {
-    grid-area: header;
+    grid-area: logo;
+    max-width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid black;
 }
 
 .home-title-cont {
-    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    grid-area: header;
+    text-align: center;
+
+    font-size: 3em;
+
+    border: 2px solid black;
 }
 
 .home-calc-cont {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 15px;
     grid-area: nav;
+    text-align: center;
+    border: 2px solid black;
 }
 
 .home-ticker-title-cont {
-    grid-area: ticker;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    grid-area: tickerTitle;
+    text-align: center;
+    font-size: 1.5em;
+    border: 2px solid black;
 }
 
 .home-ticker-cont {
     grid-area: ticker;
+    text-align: center;
+    border: 2px solid black;
 }
 
 .footer-styling {
     grid-area: footer;
+    border: 2px solid black;
+}
+
+.gen-app-foot-style {
+    text-align: center;
+
+}
+
+.nav-button {
+    /* Basic button styling */
+    padding: .5vw 3vw;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5em;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    /* Rounded corners */
+    border-radius: 25px;
+
+    /* Metallic blue background */
+    background: linear-gradient(145deg, #3a7bd5, #2e55a4);
+
+    /* Box shadow for depth */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+    /* Reflection effect */
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+
+    transition: transform 0.2s ease, box-shadow 0.1s ease;
+
+}
+
+.nav-button:active {
+    transform: scale(0.95); /* Slightly scale down the button */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Adjust the shadow for depth effect */
+}
+
+.nav-button::after {
+    content: "";
+    position: absolute;
+    top: -80%;
+    left: -210%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(235deg, rgba(255, 255, 255, 0.4), transparent 50%);
+    transform: rotate(45deg);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.nav-button:hover {
+    background: linear-gradient(145deg, #357ac9, #2a4890);
+}
+
+.home-logo-styling {
+
+    width: 100%;
+    height: auto;
+    object-fit: contain;
 }
