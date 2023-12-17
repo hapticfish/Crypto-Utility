@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 	_ "strconv"
 	"strings"
@@ -17,6 +18,9 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool { //modify back for production
+		return true // Allow all origins
+	},
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
@@ -236,12 +240,19 @@ func fetchFromCUEX() (float64, error) {
 	}
 
 	var valueStr string
-	// Replace "your-selector-here" with the actual CSS selector
-	doc.Find("your-selector-here").Each(func(i int, s *goquery.Selection) {
+	// Use the classes from the button element to find the correct selector
+	doc.Find("button.btn.btn-default.dropdown-toggle.exchange-dropdown.exchange-to-noborder").Each(func(i int, s *goquery.Selection) {
 		valueStr = s.Text()
 	})
 
-	value, err := strconv.ParseFloat(valueStr, 64)
+	// The valueStr might contain additional text, so you need to extract just the numeric part
+	re := regexp.MustCompile(`\d+\.\d+`)
+	match := re.FindString(valueStr)
+	if match == "" {
+		return 0, fmt.Errorf("could not find a valid number in the string: %s", valueStr)
+	}
+
+	value, err := strconv.ParseFloat(match, 64)
 	if err != nil {
 		return 0, err
 	}

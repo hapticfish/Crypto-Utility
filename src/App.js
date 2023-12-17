@@ -13,7 +13,7 @@ import {TickerProvider} from "./contexts/TickerContext";
 
 function App() {
   return (
-      <WebSocketProvider url={"ws://example.com"}>
+      <WebSocketProvider url={"ws://localhost:8080/ws"}> //update after deployment with new address
           <TickerProvider>
               <Router>
                   <Routes>
