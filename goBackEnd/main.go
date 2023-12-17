@@ -3,12 +3,14 @@ package goBackEnd
 import (
 	"encoding/json"
 	_ "encoding/json"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"strconv"
 	_ "strconv"
+	"strings"
 	"time"
 )
 
@@ -95,8 +97,9 @@ func fetchTickerData() (map[string]float64, error) {
 }
 
 func fetchFromCoinbase() (float64, error) {
-	// Define the URL for the Coinbase API endpoint
+	// Updated API endpoint for fetching the BTC-USD spot price
 	url := "https://api.coinbase.com/v2/prices/BTC-USD/spot"
+
 	// Make the HTTP GET request
 	resp, err := http.Get(url)
 	if err != nil {
@@ -104,7 +107,12 @@ func fetchFromCoinbase() (float64, error) {
 	}
 	defer resp.Body.Close()
 
-	// Parse the JSON response
+	// Check for non-200 status code
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("API request failed with status code: %d", resp.StatusCode)
+	}
+
+	// Updated struct to match the expected response format
 	var result struct {
 		Data struct {
 			Amount string `json:"amount"`
@@ -124,9 +132,8 @@ func fetchFromCoinbase() (float64, error) {
 	return amount, nil
 }
 
-func fetchFromTradingView(symbol string) (float64, error) {
-	// API endpoint - replace with the actual TradingView API endpoint
-	url := "https://api.tradingview.com/v1/some_endpoint?symbol=" + symbol
+func fetchFromTradingView() (float64, error) {
+	url := "https://www.tradingview.com/chart/qH5GiZiX/?symbol=BITSTAMP%3ABTCUSD"
 
 	// Make the HTTP GET request
 	resp, err := http.Get(url)
@@ -135,21 +142,31 @@ func fetchFromTradingView(symbol string) (float64, error) {
 	}
 	defer resp.Body.Close()
 
-	// Define a struct to unmarshal the JSON data into
-	var result struct {
-		Price float64 `json:"price"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	// Parse the HTML
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
 		return 0, err
 	}
 
-	return result.Price, nil
+	// Find the price within the HTML
+	var priceStr string
+	doc.Find(".last-JWoJqCpY.js-symbol-last").Each(func(i int, s *goquery.Selection) {
+		priceStr = s.Text()
+	})
+
+	// Cleaning and converting the string to a float
+	priceStr = strings.ReplaceAll(priceStr, ",", "")
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return price, nil
 }
 
-func fetchFromBinanceUS(symbol string) (float64, error) {
-	// API endpoint - replace with the actual Binance API endpoint
-	url := "https://api.binance.us/api/v3/ticker/price?symbol=" + symbol
+func fetchFromBinanceUS() (float64, error) {
+	// Use the correct symbol as per Binance.US trading pairs
+	url := "https://api.binance.us/api/v3/ticker/price?symbol=BTCUSD"
 
 	// Make the HTTP GET request
 	resp, err := http.Get(url)
@@ -174,9 +191,9 @@ func fetchFromBinanceUS(symbol string) (float64, error) {
 	return price, nil
 }
 
-func fetchFromKraken(pair string) (float64, error) {
-	// API endpoint - replace with the actual Kraken API endpoint
-	url := "https://api.kraken.com/0/public/Ticker?pair=" + pair
+func fetchFromKraken() (float64, error) {
+	// Kraken API endpoint for the BTC-USD ticker
+	url := "https://api.kraken.com/0/public/Ticker?pair=XBTUSD"
 
 	// Make the HTTP GET request
 	resp, err := http.Get(url)
@@ -185,6 +202,7 @@ func fetchFromKraken(pair string) (float64, error) {
 	}
 	defer resp.Body.Close()
 
+	// Define a struct to unmarshal the JSON data into
 	var result struct {
 		Result map[string]struct {
 			C []string `json:"c"`
@@ -195,7 +213,8 @@ func fetchFromKraken(pair string) (float64, error) {
 		return 0, err
 	}
 
-	price, err := strconv.ParseFloat(result.Result[pair].C[0], 64)
+	// Kraken returns the price in the first element of the 'c' array
+	price, err := strconv.ParseFloat(result.Result["XBTUSD"].C[0], 64)
 	if err != nil {
 		return 0, err
 	}

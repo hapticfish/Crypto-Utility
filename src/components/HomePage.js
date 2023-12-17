@@ -4,7 +4,10 @@
 //TODO finish intagrating go with react ticker stuff
 
 import '../index.css';
-import React, { useState, useEffect} from "react";
+import React, { useContext } from "react";
+
+import { TickerContext } from "../contexts/TickerContext";
+import { WebSocketContext } from "../contexts/WebSocketContext";
 
 import HomeLogo from './HomeLogo';
 import GeneralAppFooter from "./GeneralAppFooter";
@@ -12,21 +15,8 @@ import GeneralAppFooter from "./GeneralAppFooter";
 
 const HomePage = () => {
 
-    const [tickers, setTickers] = useState({});
-    const [previousTickers, setPreviousTickers] = useState({});
-
-    useEffect(() => {
-        const fetchTickers = async () => {
-            // Fetch the ticker date from API
-            const newData = await getTickerDataFromAPI(); // replace with API call
-            setPreviousTickers(tickers);
-            setTickers(newData);
-        };
-
-        fetchTickers();
-        const intervalId = setInterval(fetchTickers, 60000); //fetch every 60s
-         return () => clearInterval(intervalId); //Clear interval on compnoent unmount
-    }, [tickers]);
+    const {tickers, previousTickers } = useContext(TickerContext);
+    const webSocketData = useContext(WebSocketContext);
 
     return (
         <div className="home-page-grid-container">
