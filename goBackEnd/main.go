@@ -1,4 +1,4 @@
-package goBackEnd
+package main
 
 import (
 	"encoding/json"
@@ -127,6 +127,8 @@ func fetchFromCoinbase() (float64, error) {
 		return 0, err
 	}
 
+	fmt.Println("Attempting to parse from CoinBase:", result.Data.Amount) // Example for Coinbase
+
 	// Convert the string amount to a float
 	amount, err := strconv.ParseFloat(result.Data.Amount, 64)
 	if err != nil {
@@ -157,12 +159,15 @@ func fetchFromTradingView() (float64, error) {
 	doc.Find(".last-JWoJqCpY.js-symbol-last").Each(func(i int, s *goquery.Selection) {
 		priceStr = s.Text()
 	})
+	if priceStr == "" {
+		return 0, fmt.Errorf("unable to find price in TradingView response")
+	}
 
 	// Cleaning and converting the string to a float
 	priceStr = strings.ReplaceAll(priceStr, ",", "")
 	price, err := strconv.ParseFloat(priceStr, 64)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("error parsing price '%s' from TradingView: %v", priceStr, err)
 	}
 
 	return price, nil
@@ -187,9 +192,13 @@ func fetchFromBinanceUS() (float64, error) {
 		return 0, err
 	}
 
+	if result.Price == "" {
+		return 0, fmt.Errorf("empty price received from BinanceUS")
+	}
+
 	price, err := strconv.ParseFloat(result.Price, 64)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("error parsing price '%s' from BinanceUS: %v", result.Price, err)
 	}
 
 	return price, nil
@@ -217,10 +226,14 @@ func fetchFromKraken() (float64, error) {
 		return 0, err
 	}
 
+	if len(result.Result["XBTUSD"].C) == 0 || result.Result["XBTUSD"].C[0] == "" {
+		return 0, fmt.Errorf("empty or invalid price data received from Kraken")
+	}
+
 	// Kraken returns the price in the first element of the 'c' array
 	price, err := strconv.ParseFloat(result.Result["XBTUSD"].C[0], 64)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("error parsing price '%s' from Kraken: %v", result.Result["XBTUSD"].C[0], err)
 	}
 
 	return price, nil
