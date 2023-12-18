@@ -4,7 +4,7 @@
 //TODO finish intagrating go with react ticker stuff
 
 import '../index.css';
-import React, { useContext } from "react";
+import React, {useContext, useEffect} from "react";
 
 import { TickerContext } from "../contexts/TickerContext";
 import { WebSocketContext } from "../contexts/WebSocketContext";
@@ -13,9 +13,16 @@ import HomeLogo from './HomeLogo';
 import GeneralAppFooter from "./GeneralAppFooter";
 
 
+
+
 const HomePage = () => {
     const {tickers, previousTickers } = useContext(TickerContext);
-    const webSocketData = useContext(WebSocketContext);
+
+
+    //debugging for tickers
+    useEffect(() => {
+        console.log("Current tickers: ", tickers);
+    }, [tickers])
 
     return (
         <div className="home-page-grid-container">
@@ -33,16 +40,19 @@ const HomePage = () => {
                 <p>Tickers</p>
             </div>
             <div className="home-ticker-cont">
-                {Object.entries(tickers).map(([key, value]) => {
-                    const previousValue = previousTickers[key];
-                    let className = 'ticker-value';
-                    if (previousValue != null) {
-                        className += value > previousValue ? 'ticker-up' : 'ticker-down';
-                    }
+                {Object.keys(tickers).length > 0 ? (
+                    Object.entries(tickers).map(([tickerName, tickerValue]) => {
+                        const previousValue = previousTickers[tickerName];
+                        let className = 'ticker-value';
+                        if (typeof previousValue === 'number') {
+                            className += tickerValue > previousValue ? ' ticker-up' : ' ticker-down';
+                        }
 
-                    return <p key={key} className={className}>{key}: {value}</p>;
-                })}
-                }
+                        return <p key={tickerName} className={className}>{tickerName}: {tickerValue}</p>;
+                    })
+                ) : (
+                    <p>No ticker data available.</p>
+                )}
             </div>
             <div className="footer-styling">
                 <GeneralAppFooter />

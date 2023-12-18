@@ -61,5 +61,7 @@ const useWebSocket = (url) => {
         };
     }, [connect]);
 
-    return {data, connectionStatus };
+    return { data, connectionStatus };
 };
+
+export default useWebSocket;
