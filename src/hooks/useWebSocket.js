@@ -3,29 +3,53 @@ import { useState, useEffect, useCallback } from "react";
 const useWebSocket = (url) => {
     const [data, setData] = useState({});
     const [ws, setWs] = useState(null);
+    const [attemptCount, setAttemptCount] = useState(0);
+    const [connectionStatus, setConnectionStatus] = useState("disconnected");
+
+    const MAX_ATTEMPTS = 5;
 
     const connect = useCallback(() => {
-        const webSocket = new WebSocket(url);
+        if (attemptCount >= MAX_ATTEMPTS) {
+            console.log("Max reconnections attempts reached");
+            setConnectionStatus("failed");
+            return;
+        }
 
-        webSocket.onopen = () => console.log("WebSocket connected");
+        const webSocket = new WebSocket(url);
+        setConnectionStatus("connecting");
+
+
+        webSocket.onopen = () => {
+            console.log("WebSocket connected");
+            setConnectionStatus("connected");
+            setAttemptCount(0); //reset on success
+        }
+
         webSocket.onmessage = (e) => {
-            const message = JSON.parse(e.data);
-            setData(message);
+            try {
+                const message = JSON.parse(e.data);
+                setData(message);
+            } catch (error) {
+                console.error("Error parsing message:", error);
+            }
         };
+
         webSocket.onclose = () => {
             console.log("WebSocket disconnected");
             //Attempt to reconnect with a delay
             setTimeout(() => {
+                setAttemptCount((prevCount) => prevCount + 1);
                 connect();
-            }, 3000); //reconnect after 3 sec
+            }, 3000 + attemptCount * 1000); //increase delay with each attempt
         };
+
         webSocket.onerror = (error) => {
             console.error("WebSocket error:", error);
             webSocket.close();
         };
 
         setWs(webSocket);
-    }, [url]);
+    }, [url, attemptCount]);
 
     useEffect(() => {
         connect();
@@ -35,7 +59,7 @@ const useWebSocket = (url) => {
                 ws.close();
             }
         };
-    }, [connect, ws]);
+    }, [connect]);
 
-    return data;
+    return {data, connectionStatus };
 };

@@ -1,13 +1,24 @@
-import React, { createContext, useState, useEffect } from 'react';
+
+
+import React, { createContext, useState, useEffect,useContext } from 'react';
+import { WebSocketContext } from './WebSocketContext';
 
 export const TickerContext = createContext();
 
 export const TickerProvider = ({ children }) => {
     const [tickers, setTickers] = useState({});
-    // logic for fetching tickers and updating tickers
+    const [previousTickers, setPreviousTickers] = useState({});
+    const webSocketData = useContext(WebSocketContext);
+
+    useEffect(() => {
+        if (webSocketData) {
+            setPreviousTickers(tickers);
+            setTickers(webSocketData);
+        }
+    }, [webSocketData, tickers]);
 
     return (
-        <TickerContext.Provider value={{ tickers, setTickers }}>
+        <TickerContext.Provider value={{ tickers, previousTickers }}>
         {children}
         </TickerContext.Provider>
     );

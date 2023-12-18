@@ -14,7 +14,6 @@ import GeneralAppFooter from "./GeneralAppFooter";
 
 
 const HomePage = () => {
-
     const {tickers, previousTickers } = useContext(TickerContext);
     const webSocketData = useContext(WebSocketContext);
 
@@ -37,7 +36,7 @@ const HomePage = () => {
                 {Object.entries(tickers).map(([key, value]) => {
                     const previousValue = previousTickers[key];
                     let className = 'ticker-value';
-                    if (previousValue) {
+                    if (previousValue != null) {
                         className += value > previousValue ? 'ticker-up' : 'ticker-down';
                     }
 
