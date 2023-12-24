@@ -5,6 +5,7 @@ const useWebSocket = (url) => {
     const [ws, setWs] = useState(null);
     const [attemptCount, setAttemptCount] = useState(0);
     const [connectionStatus, setConnectionStatus] = useState("disconnected");
+    const [isLoading, setIsLoading] = useState(true);
 
     const MAX_ATTEMPTS = 5;
 
@@ -21,6 +22,7 @@ const useWebSocket = (url) => {
 
         webSocket.onopen = () => {
             console.log("WebSocket connected");
+            setIsLoading(false);
             setConnectionStatus("connected");
             setAttemptCount(0); //reset on success
         }
@@ -29,8 +31,10 @@ const useWebSocket = (url) => {
             try {
                 const message = JSON.parse(e.data);
                 setData(message);
+                setIsLoading(false); //data recived, set loading to false
             } catch (error) {
                 console.error("Error parsing message:", error);
+                setIsLoading(false); //Error occured, set loading to false
             }
         };
 
@@ -61,7 +65,7 @@ const useWebSocket = (url) => {
         };
     }, [connect]);
 
-    return { data, connectionStatus };
+    return { data, connectionStatus, isLoading };
 };
 
 export default useWebSocket;

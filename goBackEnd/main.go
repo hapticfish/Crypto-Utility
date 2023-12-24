@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"strconv"
 	_ "strconv"
-	"strings"
 	"time"
 )
 
@@ -69,10 +68,10 @@ func fetchTickerData() (map[string]float64, error) {
 		return nil, err
 	}
 
-	btcUsdTradingView, err := fetchFromTradingView()
-	if err != nil {
-		return nil, err
-	}
+	//btcUsdTradingView, err := fetchFromTradingView()
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	btcUsdBinanceUS, err := fetchFromBinanceUS()
 	if err != nil {
@@ -90,11 +89,11 @@ func fetchTickerData() (map[string]float64, error) {
 	}
 
 	tickerData := map[string]float64{
-		"BTC-USD (Coinbase)":    btcUsdCoinbase,
-		"BTC-USD (TradingView)": btcUsdTradingView,
-		"BTC-USD (BinanceUS)":   btcUsdBinanceUS,
-		"BTC-USD (Kraken)":      btcUsdKraken,
-		"ARS-USD (CUEX)":        USDARSCUEX,
+		"BTC-USD (Coinbase)": btcUsdCoinbase,
+		//"BTC-USD (TradingView)": btcUsdTradingView,
+		"BTC-USD (BinanceUS)": btcUsdBinanceUS,
+		"BTC-USD (Kraken)":    btcUsdKraken,
+		"ARS-USD (CUEX)":      USDARSCUEX,
 	}
 
 	return tickerData, nil
@@ -138,40 +137,43 @@ func fetchFromCoinbase() (float64, error) {
 	return amount, nil
 }
 
-func fetchFromTradingView() (float64, error) {
-	url := "https://www.tradingview.com/chart/qH5GiZiX/?symbol=BITSTAMP%3ABTCUSD"
-
-	// Make the HTTP GET request
-	resp, err := http.Get(url)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
-
-	// Parse the HTML
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return 0, err
-	}
-
-	// Find the price within the HTML
-	var priceStr string
-	doc.Find(".last-JWoJqCpY.js-symbol-last").Each(func(i int, s *goquery.Selection) {
-		priceStr = s.Text()
-	})
-	if priceStr == "" {
-		return 0, fmt.Errorf("unable to find price in TradingView response")
-	}
-
-	// Cleaning and converting the string to a float
-	priceStr = strings.ReplaceAll(priceStr, ",", "")
-	price, err := strconv.ParseFloat(priceStr, 64)
-	if err != nil {
-		return 0, fmt.Errorf("error parsing price '%s' from TradingView: %v", priceStr, err)
-	}
-
-	return price, nil
-}
+//func fetchFromTradingView() (float64, error) {
+//	url := "https://www.tradingview.com/symbols/BTCUSD/"
+//
+//	// Make the HTTP GET request
+//	resp, err := http.Get(url)
+//	if err != nil {
+//		return 0, err
+//	}
+//	defer resp.Body.Close()
+//
+//	// Parse the HTML
+//	doc, err := goquery.NewDocumentFromReader(resp.Body)
+//	if err != nil {
+//		return 0, err
+//	}
+//
+//	// Find the price within the HTML
+//	var priceStr string
+//	doc.Find(".last-JWoJqCpY.js-symbol-last").Each(func(i int, s *goquery.Selection) {
+//		priceStr = s.Text()
+//		s.Children().Each(func(_ int, child *goquery.Selection) {
+//			priceStr += child.Text()
+//		})
+//	})
+//	if priceStr == "" {
+//		return 0, fmt.Errorf("unable to find price in TradingView response")
+//	}
+//
+//	// Cleaning and converting the string to a float
+//	priceStr = strings.ReplaceAll(priceStr, ",", "")
+//	price, err := strconv.ParseFloat(priceStr, 64)
+//	if err != nil {
+//		return 0, fmt.Errorf("error parsing price '%s' from TradingView: %v", priceStr, err)
+//	}
+//
+//	return price, nil
+//}
 
 func fetchFromBinanceUS() (float64, error) {
 	// Use the correct symbol as per Binance.US trading pairs

@@ -4,7 +4,7 @@
 //TODO finish intagrating go with react ticker stuff
 
 import '../index.css';
-import React, {useContext, useEffect} from "react";
+import React, {useContext, useEffect, useState} from "react";
 
 import { TickerContext } from "../contexts/TickerContext";
 import { WebSocketContext } from "../contexts/WebSocketContext";
@@ -17,11 +17,28 @@ import GeneralAppFooter from "./GeneralAppFooter";
 
 const HomePage = () => {
     const {tickers, previousTickers } = useContext(TickerContext);
+    const  { isLoading } = useContext(WebSocketContext)
 
+    // State to manage loading indicators
+    const [showLoading, setShowLoading] = useState(true);
+
+
+    // Timeout for loading state
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowLoading(false);
+        }, 5000);
+
+        // Clean up the timer when the component is unmounted or if the loading state changes
+        return () => clearTimeout(timer);
+    }, []);
 
     //debugging for tickers
     useEffect(() => {
         console.log("Current tickers: ", tickers);
+        if (Object.keys(tickers).length > 0) {
+            setShowLoading(false);
+        }
     }, [tickers])
 
     return (
@@ -40,18 +57,23 @@ const HomePage = () => {
                 <p>Tickers</p>
             </div>
             <div className="home-ticker-cont">
-                {Object.keys(tickers).length > 0 ? (
+                {showLoading && isLoading ? (
+                    <div className="loading-dots">
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                        <div className="dot"></div>
+                    </div>
+                ) : Object.keys(tickers).length > 0 ? (
                     Object.entries(tickers).map(([tickerName, tickerValue]) => {
                         const previousValue = previousTickers[tickerName];
                         let className = 'ticker-value';
                         if (typeof previousValue === 'number') {
                             className += tickerValue > previousValue ? ' ticker-up' : ' ticker-down';
                         }
-
                         return <p key={tickerName} className={className}>{tickerName}: {tickerValue}</p>;
                     })
                 ) : (
-                    <p>No ticker data available.</p>
+                    <p>{!isLoading ? 'Failed to load tickers.' : 'No ticker data available.'}</p>
                 )}
             </div>
             <div className="footer-styling">
