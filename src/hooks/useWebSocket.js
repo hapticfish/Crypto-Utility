@@ -63,7 +63,7 @@ const useWebSocket = (url) => {
                 ws.close();
             }
         };
-    }, [connect]);
+    }, [connect, ws]);
 
     return { data, connectionStatus, isLoading };
 };
