@@ -16,11 +16,14 @@ import GeneralAppFooter from "./GeneralAppFooter";
 
 
 const HomePage = () => {
+    const {tickers, previousTickers } = useContext(TickerContext);
+    const  { data, isLoading } = useContext(WebSocketContext)
+
+    console.log("Data from WebSocketContext:", data); // Logging data from context
     console.log("Tickers:", tickers);
     console.log("Previous Tickers", previousTickers);
     console.log("Is Loading:", isLoading);
-    const {tickers, previousTickers } = useContext(TickerContext);
-    const  { isLoading } = useContext(WebSocketContext)
+
 
     // State to manage loading indicators
     const [showLoading, setShowLoading] = useState(true);

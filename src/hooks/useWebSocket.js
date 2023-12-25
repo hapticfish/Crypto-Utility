@@ -32,10 +32,11 @@ const useWebSocket = (url) => {
         webSocket.onmessage = (e) => {
             try {
                 const message = JSON.parse(e.data);
+                console.log("Received WebSocket data:", message) //logging of data to console
                 if (message && typeof message === 'object' && !Array.isArray(message)){
                     setData(message);
                 } else {
-                    console.error('Incalid data format recived:', message);
+                    console.error('Invalid data format received:', message);
                 }
             } catch (error) {
                 console.error("Error parsing WebSocket message:", error);

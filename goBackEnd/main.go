@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	_ "strconv"
+	"strings"
 	"time"
 )
 
@@ -68,10 +69,10 @@ func fetchTickerData() (map[string]float64, error) {
 		return nil, err
 	}
 
-	//btcUsdTradingView, err := fetchFromTradingView()
-	//if err != nil {
-	//	return nil, err
-	//}
+	btcUsdTradingView, err := fetchFromTradingView()
+	if err != nil {
+		return nil, err
+	}
 
 	btcUsdBinanceUS, err := fetchFromBinanceUS()
 	if err != nil {
@@ -89,24 +90,31 @@ func fetchTickerData() (map[string]float64, error) {
 	}
 
 	tickerData := map[string]float64{
-		"BTC-USD (Coinbase)": btcUsdCoinbase,
-		//"BTC-USD (TradingView)": btcUsdTradingView,
-		"BTC-USD (BinanceUS)": btcUsdBinanceUS,
-		"BTC-USD (Kraken)":    btcUsdKraken,
-		"ARS-USD (CUEX)":      USDARSCUEX,
+		"BTC-USD (Coinbase)":    btcUsdCoinbase,
+		"BTC-USD (TradingView)": btcUsdTradingView,
+		"BTC-USD (BinanceUS)":   btcUsdBinanceUS,
+		"BTC-USD (Kraken)":      btcUsdKraken,
+		"ARS-USD (CUEX)":        USDARSCUEX,
 	}
 
 	return tickerData, nil
 }
 
+var lastFetchTime time.Time
+
 func fetchFromCoinbase() (float64, error) {
+	if time.Since(lastFetchTime) < 1*time.Minute {
+		//Skip fetch if less than a min
+		return 0, fmt.Errorf("fetching to frequently")
+	}
+
 	// Updated API endpoint for fetching the BTC-USD spot price
 	url := "https://api.coinbase.com/v2/prices/BTC-USD/spot"
 
 	// Make the HTTP GET request
 	resp, err := http.Get(url)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("error fetching from Coinbase: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -134,55 +142,67 @@ func fetchFromCoinbase() (float64, error) {
 		return 0, err
 	}
 
+	lastFetchTime = time.Now()
 	return amount, nil
 }
 
-//func fetchFromTradingView() (float64, error) {
-//	url := "https://www.tradingview.com/symbols/BTCUSD/"
-//
-//	// Make the HTTP GET request
-//	resp, err := http.Get(url)
-//	if err != nil {
-//		return 0, err
-//	}
-//	defer resp.Body.Close()
-//
-//	// Parse the HTML
-//	doc, err := goquery.NewDocumentFromReader(resp.Body)
-//	if err != nil {
-//		return 0, err
-//	}
-//
-//	// Find the price within the HTML
-//	var priceStr string
-//	doc.Find(".last-JWoJqCpY.js-symbol-last").Each(func(i int, s *goquery.Selection) {
-//		priceStr = s.Text()
-//		s.Children().Each(func(_ int, child *goquery.Selection) {
-//			priceStr += child.Text()
-//		})
-//	})
-//	if priceStr == "" {
-//		return 0, fmt.Errorf("unable to find price in TradingView response")
-//	}
-//
-//	// Cleaning and converting the string to a float
-//	priceStr = strings.ReplaceAll(priceStr, ",", "")
-//	price, err := strconv.ParseFloat(priceStr, 64)
-//	if err != nil {
-//		return 0, fmt.Errorf("error parsing price '%s' from TradingView: %v", priceStr, err)
-//	}
-//
-//	return price, nil
-//}
+func fetchFromTradingView() (float64, error) {
+
+	if time.Since(lastFetchTime) < 1*time.Minute {
+		return 0, fmt.Errorf("fetching too frequently")
+	}
+
+	url := "https://www.tradingview.com/symbols/BTCUSD/"
+
+	// Make the HTTP GET request
+	resp, err := http.Get(url)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	// Parse the HTML
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return 0, err
+	}
+
+	// Find the price within the HTML
+	var priceStr string
+	doc.Find(".last-JWoJqCpY.js-symbol-last").Each(func(i int, s *goquery.Selection) {
+		priceStr = s.Text()
+		s.Children().Each(func(_ int, child *goquery.Selection) {
+			priceStr += child.Text()
+		})
+	})
+	if priceStr == "" {
+		return 0, fmt.Errorf("unable to find price in TradingView response")
+	}
+
+	// Cleaning and converting the string to a float
+	priceStr = strings.ReplaceAll(priceStr, ",", "")
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		return 0, fmt.Errorf("error parsing price '%s' from TradingView: %v", priceStr, err)
+	}
+
+	lastFetchTime = time.Now()
+	return price, nil
+}
 
 func fetchFromBinanceUS() (float64, error) {
+
+	if time.Since(lastFetchTime) < 1*time.Minute {
+		return 0, fmt.Errorf("fetching too frequently")
+	}
+
 	// Use the correct symbol as per Binance.US trading pairs
 	url := "https://api.binance.us/api/v3/ticker/price?symbol=BTCUSD"
 
 	// Make the HTTP GET request
 	resp, err := http.Get(url)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("error fetching from BinanceUS: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -203,17 +223,22 @@ func fetchFromBinanceUS() (float64, error) {
 		return 0, fmt.Errorf("error parsing price '%s' from BinanceUS: %v", result.Price, err)
 	}
 
+	lastFetchTime = time.Now()
 	return price, nil
 }
 
 func fetchFromKraken() (float64, error) {
+	if time.Since(lastFetchTime) < 1*time.Minute {
+		return 0, fmt.Errorf("fetching too frequently")
+	}
+
 	// Kraken API endpoint for the BTC-USD ticker
 	url := "https://api.kraken.com/0/public/Ticker?pair=XBTUSD"
 
 	// Make the HTTP GET request
 	resp, err := http.Get(url)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("error fetching from Kraken: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -238,14 +263,20 @@ func fetchFromKraken() (float64, error) {
 		return 0, fmt.Errorf("error parsing price '%s' from Kraken: %v", result.Result["XBTUSD"].C[0], err)
 	}
 
+	lastFetchTime = time.Now()
 	return price, nil
 }
 
 func fetchFromCUEX() (float64, error) {
+
+	if time.Since(lastFetchTime) < 1*time.Minute {
+		return 0, fmt.Errorf("fetching too frequently")
+	}
+
 	url := "https://cuex.com/en/usd-ars_pa"
 	resp, err := http.Get(url)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("error fetching from CUEX: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -272,5 +303,6 @@ func fetchFromCUEX() (float64, error) {
 		return 0, err
 	}
 
+	lastFetchTime = time.Now()
 	return value, nil
 }
