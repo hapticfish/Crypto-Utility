@@ -17,6 +17,8 @@ const useWebSocket = (url) => {
         }
 
         const webSocket = new WebSocket(url);
+        console.log("Attempting WebSocket connection", url);
+
         setConnectionStatus("connecting");
 
 
@@ -30,12 +32,15 @@ const useWebSocket = (url) => {
         webSocket.onmessage = (e) => {
             try {
                 const message = JSON.parse(e.data);
-                setData(message);
-                setIsLoading(false); //data recived, set loading to false
+                if (message && typeof message === 'object' && !Array.isArray(message)){
+                    setData(message);
+                } else {
+                    console.error('Incalid data format recived:', message);
+                }
             } catch (error) {
-                console.error("Error parsing message:", error);
-                setIsLoading(false); //Error occured, set loading to false
+                console.error("Error parsing WebSocket message:", error);
             }
+            setIsLoading(false); //Error occured, set loading to false
         };
 
         webSocket.onclose = () => {

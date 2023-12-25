@@ -16,6 +16,9 @@ import GeneralAppFooter from "./GeneralAppFooter";
 
 
 const HomePage = () => {
+    console.log("Tickers:", tickers);
+    console.log("Previous Tickers", previousTickers);
+    console.log("Is Loading:", isLoading);
     const {tickers, previousTickers } = useContext(TickerContext);
     const  { isLoading } = useContext(WebSocketContext)
 
@@ -63,7 +66,7 @@ const HomePage = () => {
                         <div className="dot"></div>
                         <div className="dot"></div>
                     </div>
-                ) : Object.keys(tickers).length > 0 ? (
+                ) : tickers && Object.keys(tickers).length > 0 ? (
                     Object.entries(tickers).map(([tickerName, tickerValue]) => {
                         const previousValue = previousTickers[tickerName];
                         let className = 'ticker-value';

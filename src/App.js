@@ -6,7 +6,7 @@ import HomePage from './components/HomePage';
 import SplashPage from './components/SplashPage';
 import AccountingPage from './components/AccountingPage';
 import CalculatorPage from './components/CalculatorPage';
-import {WebSocketContext, WebSocketProvider} from "./contexts/WebSocketContext";
+import {WebSocketProvider} from "./contexts/WebSocketContext";
 import {TickerProvider} from "./contexts/TickerContext";
 
 
