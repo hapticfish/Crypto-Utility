@@ -11,22 +11,31 @@ import { WebSocketContext } from "../contexts/WebSocketContext";
 
 import HomeLogo from './HomeLogo';
 import GeneralAppFooter from "./GeneralAppFooter";
-
-
-
+import useWebSocket from "../hooks/useWebSocket";
 
 const HomePage = () => {
     const {tickers, previousTickers } = useContext(TickerContext);
-    const  { data, isLoading } = useContext(WebSocketContext)
+    const { subscribe, unsubscribe, data, isLoading } = useContext(WebSocketContext);
+    const [showLoading, setShowLoading] = useState(true);// State to manage loading indicators
 
-    console.log("Data from WebSocketContext:", data); // Logging data from context
+
+    useEffect(() => {
+        subscribe();
+        console.log("WebSocket subscribed");
+        console.log("Data from WebSocketContext:", data); // Logging data from context
+
+        console.log("Is Loading:", isLoading);
+        return () => {
+            unsubscribe();
+            console.log("WebSocket unsubscribed");
+        }
+    }, [subscribe, unsubscribe, data, isLoading]);
+
+
+
     console.log("Tickers:", tickers);
     console.log("Previous Tickers", previousTickers);
-    console.log("Is Loading:", isLoading);
 
-
-    // State to manage loading indicators
-    const [showLoading, setShowLoading] = useState(true);
 
 
     // Timeout for loading state
