@@ -62,50 +62,70 @@ func main() {
 	}
 }
 
+var (
+	lastFetchTimeCoinbase    time.Time
+	lastFetchTimeTradingView time.Time
+	lastFetchTimeBinanceUS   time.Time
+	lastFetchTimeKraken      time.Time
+	lastFetchTimeCUEX        time.Time
+)
+
 func fetchTickerData() (map[string]float64, error) {
-	// Fetch data from each API
+	tickerData := make(map[string]float64)
+
+	// Fetch data from Coinbase
 	btcUsdCoinbase, err := fetchFromCoinbase()
 	if err != nil {
-		return nil, err
+		log.Printf("Error fetching from Coinbase: %v\n", err)
+	} else if btcUsdCoinbase != 0 {
+		tickerData["BTC-USD (Coinbase)"] = btcUsdCoinbase
 	}
 
+	// Fetch data from TradingView
 	btcUsdTradingView, err := fetchFromTradingView()
 	if err != nil {
-		return nil, err
+		log.Printf("Error fetching from TradingView: %v\n", err)
+	} else if btcUsdTradingView != 0 {
+		tickerData["BTC-USD (TradingView)"] = btcUsdTradingView
 	}
 
+	// Fetch data from BinanceUS
 	btcUsdBinanceUS, err := fetchFromBinanceUS()
 	if err != nil {
-		return nil, err
+		log.Printf("Error fetching from BinanceUS: %v\n", err)
+	} else if btcUsdBinanceUS != 0 {
+		tickerData["BTC-USD (BinanceUS)"] = btcUsdBinanceUS
 	}
 
+	// Fetch data from Kraken
 	btcUsdKraken, err := fetchFromKraken()
 	if err != nil {
-		return nil, err
+		log.Printf("Error fetching from Kraken: %v\n", err)
+	} else if btcUsdKraken != 0 {
+		tickerData["BTC-USD (Kraken)"] = btcUsdKraken
 	}
 
+	// Fetch data from CUEX
 	USDARSCUEX, err := fetchFromCUEX()
 	if err != nil {
-		return nil, err
+		log.Printf("Error fetching from CUEX: %v\n", err)
+	} else if USDARSCUEX != 0 {
+		tickerData["ARS-USD (CUEX)"] = USDARSCUEX
 	}
 
-	tickerData := map[string]float64{
-		"BTC-USD (Coinbase)":    btcUsdCoinbase,
-		"BTC-USD (TradingView)": btcUsdTradingView,
-		"BTC-USD (BinanceUS)":   btcUsdBinanceUS,
-		"BTC-USD (Kraken)":      btcUsdKraken,
-		"ARS-USD (CUEX)":        USDARSCUEX,
+	if len(tickerData) == 0 {
+		return nil, fmt.Errorf("all data sources failed to fetch data")
 	}
 
+	log.Println("Fetched ticker data successfully")
 	return tickerData, nil
 }
 
-var lastFetchTime time.Time
-
 func fetchFromCoinbase() (float64, error) {
-	if time.Since(lastFetchTime) < 1*time.Minute {
+	if time.Since(lastFetchTimeCoinbase) < 1*time.Minute {
 		//Skip fetch if less than a min
-		return 0, fmt.Errorf("fetching to frequently")
+		log.Println("INFO: Skipping fetch from Coinbase due to rate limit")
+		return 0, nil
 	}
 
 	// Updated API endpoint for fetching the BTC-USD spot price
@@ -142,14 +162,16 @@ func fetchFromCoinbase() (float64, error) {
 		return 0, err
 	}
 
-	lastFetchTime = time.Now()
+	lastFetchTimeCoinbase = time.Now()
+	log.Println("Data successfully fetched from Coinbase")
 	return amount, nil
 }
 
 func fetchFromTradingView() (float64, error) {
 
-	if time.Since(lastFetchTime) < 1*time.Minute {
-		return 0, fmt.Errorf("fetching too frequently")
+	if time.Since(lastFetchTimeTradingView) < 1*time.Minute {
+		log.Println("INFO: Skipping fetch from TradingView due to rate limit")
+		return 0, nil
 	}
 
 	url := "https://www.tradingview.com/symbols/BTCUSD/"
@@ -186,14 +208,16 @@ func fetchFromTradingView() (float64, error) {
 		return 0, fmt.Errorf("error parsing price '%s' from TradingView: %v", priceStr, err)
 	}
 
-	lastFetchTime = time.Now()
+	lastFetchTimeTradingView = time.Now()
+	log.Println("Data successfully fetched from TradingView")
 	return price, nil
 }
 
 func fetchFromBinanceUS() (float64, error) {
 
-	if time.Since(lastFetchTime) < 1*time.Minute {
-		return 0, fmt.Errorf("fetching too frequently")
+	if time.Since(lastFetchTimeBinanceUS) < 1*time.Minute {
+		log.Println("INFO: Skipping fetch from binanceUS due to rate limit")
+		return 0, nil
 	}
 
 	// Use the correct symbol as per Binance.US trading pairs
@@ -223,13 +247,15 @@ func fetchFromBinanceUS() (float64, error) {
 		return 0, fmt.Errorf("error parsing price '%s' from BinanceUS: %v", result.Price, err)
 	}
 
-	lastFetchTime = time.Now()
+	lastFetchTimeBinanceUS = time.Now()
+	log.Println("Data successfully fetched from BinanceUS")
 	return price, nil
 }
 
 func fetchFromKraken() (float64, error) {
-	if time.Since(lastFetchTime) < 1*time.Minute {
-		return 0, fmt.Errorf("fetching too frequently")
+	if time.Since(lastFetchTimeKraken) < 1*time.Minute {
+		log.Println("INFO: Skipping fetch from Kraken due to rate limit")
+		return 0, nil
 	}
 
 	// Kraken API endpoint for the BTC-USD ticker
@@ -263,14 +289,16 @@ func fetchFromKraken() (float64, error) {
 		return 0, fmt.Errorf("error parsing price '%s' from Kraken: %v", result.Result["XBTUSD"].C[0], err)
 	}
 
-	lastFetchTime = time.Now()
+	lastFetchTimeKraken = time.Now()
+	log.Println("Data successfully fetched from Kraken")
 	return price, nil
 }
 
 func fetchFromCUEX() (float64, error) {
 
-	if time.Since(lastFetchTime) < 1*time.Minute {
-		return 0, fmt.Errorf("fetching too frequently")
+	if time.Since(lastFetchTimeCUEX) < 1*time.Minute {
+		log.Println("INFO: Skipping fetch from CUEX due to rate limit")
+		return 0, nil
 	}
 
 	url := "https://cuex.com/en/usd-ars_pa"
@@ -303,6 +331,7 @@ func fetchFromCUEX() (float64, error) {
 		return 0, err
 	}
 
-	lastFetchTime = time.Now()
+	lastFetchTimeCUEX = time.Now()
+	log.Println("Data successfully fetched from CUEX")
 	return value, nil
 }
