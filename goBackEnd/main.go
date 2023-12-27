@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	_ "encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gorilla/websocket"
@@ -10,57 +9,11 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
-	_ "strconv"
 	"strings"
 	"time"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool { //modify back for production
-		return true // Allow all origins
-	},
-}
-
-func handleConnections(w http.ResponseWriter, r *http.Request) {
-	// Upgrade initial GET request to a websocket
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer ws.Close()
-
-	// Main loop for websocket
-	for {
-		// Fetch ticker data
-		tickerData, err := fetchTickerData()
-		if err != nil {
-			log.Println("Error fetching ticker data:", err)
-			continue
-		}
-
-		// Send latest ticker data to client
-		if err := ws.WriteJSON(tickerData); err != nil {
-			log.Println("Error sending message:", err)
-			break
-		}
-
-		// Sleep for a specified duration before fetching new data
-		time.Sleep(1 * time.Minute)
-	}
-}
-
-func main() {
-	http.HandleFunc("/ws", handleConnections) // Corrected the path and function name
-
-	// Start the server on localhost port 8080
-	log.Println("HTTP server started on :8080")
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
-}
+const fetchTimeout = 30 * time.Second
 
 var (
 	lastFetchTimeCoinbase    time.Time
@@ -70,55 +23,94 @@ var (
 	lastFetchTimeCUEX        time.Time
 )
 
+type FetchResult struct {
+	Source string
+	Price  float64
+	Err    error
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func main() {
+	http.HandleFunc("/ws", handleConnections)
+
+	log.Println("HTTP server started on :8080")
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
+}
+
+func handleConnections(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ws.Close()
+
+	for {
+		tickerData, err := fetchTickerData()
+		if err != nil {
+			log.Println("Error fetching ticker data:", err)
+			continue
+		}
+
+		if err := ws.WriteJSON(tickerData); err != nil {
+			log.Println("Error sending message:", err)
+			break
+		}
+
+		time.Sleep(1 * time.Minute)
+	}
+}
+
 func fetchTickerData() (map[string]float64, error) {
+	resultsChan := make(chan FetchResult, 5)
+
+	go fetchPrice("BTC-USD (Coinbase)", fetchFromCoinbase, resultsChan)
+	go fetchPrice("BTC-USD (TradingView)", fetchFromTradingView, resultsChan)
+	go fetchPrice("BTC-USD (BinanceUS)", fetchFromBinanceUS, resultsChan)
+	go fetchPrice("BTC-USD (Kraken)", fetchFromKraken, resultsChan)
+	go fetchPrice("ARS-USD (CUEX)", fetchFromCUEX, resultsChan)
+
 	tickerData := make(map[string]float64)
-
-	// Fetch data from Coinbase
-	btcUsdCoinbase, err := fetchFromCoinbase()
-	if err != nil {
-		log.Printf("Error fetching from Coinbase: %v\n", err)
-	} else if btcUsdCoinbase != 0 {
-		tickerData["BTC-USD (Coinbase)"] = btcUsdCoinbase
-	}
-
-	// Fetch data from TradingView
-	btcUsdTradingView, err := fetchFromTradingView()
-	if err != nil {
-		log.Printf("Error fetching from TradingView: %v\n", err)
-	} else if btcUsdTradingView != 0 {
-		tickerData["BTC-USD (TradingView)"] = btcUsdTradingView
-	}
-
-	// Fetch data from BinanceUS
-	btcUsdBinanceUS, err := fetchFromBinanceUS()
-	if err != nil {
-		log.Printf("Error fetching from BinanceUS: %v\n", err)
-	} else if btcUsdBinanceUS != 0 {
-		tickerData["BTC-USD (BinanceUS)"] = btcUsdBinanceUS
-	}
-
-	// Fetch data from Kraken
-	btcUsdKraken, err := fetchFromKraken()
-	if err != nil {
-		log.Printf("Error fetching from Kraken: %v\n", err)
-	} else if btcUsdKraken != 0 {
-		tickerData["BTC-USD (Kraken)"] = btcUsdKraken
-	}
-
-	// Fetch data from CUEX
-	USDARSCUEX, err := fetchFromCUEX()
-	if err != nil {
-		log.Printf("Error fetching from CUEX: %v\n", err)
-	} else if USDARSCUEX != 0 {
-		tickerData["ARS-USD (CUEX)"] = USDARSCUEX
+	for i := 0; i < 5; i++ {
+		result := <-resultsChan
+		if result.Err != nil {
+			log.Printf("Error fetching from %s: %v\n", result.Source, result.Err)
+		} else if result.Price != 0 {
+			tickerData[result.Source] = result.Price
+		}
 	}
 
 	if len(tickerData) == 0 {
 		return nil, fmt.Errorf("all data sources failed to fetch data")
 	}
 
-	log.Println("Fetched ticker data successfully")
 	return tickerData, nil
+}
+
+func fetchPrice(source string, fetchFunc func() (float64, error), resultsChan chan<- FetchResult) {
+	timer := time.After(fetchTimeout)
+
+	fetchChan := make(chan FetchResult, 1)
+	go func() {
+		price, err := fetchFunc()
+		fetchChan <- FetchResult{Source: source, Price: price, Err: err}
+	}()
+
+	select {
+	case result := <-fetchChan:
+		resultsChan <- result
+	case <-timer:
+		resultsChan <- FetchResult{Source: source, Err: fmt.Errorf("fetch timed out")}
+	}
 }
 
 func fetchFromCoinbase() (float64, error) {

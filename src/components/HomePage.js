@@ -11,7 +11,6 @@ import { WebSocketContext } from "../contexts/WebSocketContext";
 
 import HomeLogo from './HomeLogo';
 import GeneralAppFooter from "./GeneralAppFooter";
-import useWebSocket from "../hooks/useWebSocket";
 
 const HomePage = () => {
     const {tickers, previousTickers } = useContext(TickerContext);
@@ -35,6 +34,7 @@ const HomePage = () => {
 
     console.log("Tickers:", tickers);
     console.log("Previous Tickers", previousTickers);
+
 
 
 
